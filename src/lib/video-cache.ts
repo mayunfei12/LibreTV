@@ -33,9 +33,12 @@ export interface CacheSettings {
 
 export const DEFAULT_CACHE_SETTINGS: CacheSettings = {
   enabled: true,
-  horizonSeconds: 300,
-  maxBytesPerEpisode: 800 * 1024 * 1024,
-  maxTotalBytes: 2 * 1024 * 1024 * 1024,
+  // 预取窗口从 300s 提到 600s：提前缓存更远，减少播放中途缓冲
+  horizonSeconds: 600,
+  // 单集缓存上限 800MB -> 1.5GB
+  maxBytesPerEpisode: 1536 * 1024 * 1024,
+  // 全局缓存上限 2GB -> 4GB
+  maxTotalBytes: 4 * 1024 * 1024 * 1024,
 };
 
 const SETTINGS_KEY = 'libretv-video-cache-settings';
@@ -58,7 +61,18 @@ export function normalizeCacheSettings(input: unknown): CacheSettings {
 export function loadCacheSettings(): CacheSettings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    return normalizeCacheSettings(raw ? JSON.parse(raw) : undefined);
+    const parsed = raw ? (JSON.parse(raw) as Partial<CacheSettings>) : undefined;
+    // 迁移：设置页只有「视频缓存」总开关，没有窗口/上限细调，旧版本存下的保守值
+    // （300s / 800MB / 2GB）会一直覆盖新版默认。这里取「存储值与当前默认的较大者」，
+    // 保证提速默认值对老用户也生效；horizonSeconds=0 表示无限，保持不动。
+    if (parsed) {
+      if (parsed.horizonSeconds !== 0) {
+        parsed.horizonSeconds = Math.max(parsed.horizonSeconds ?? 0, DEFAULT_CACHE_SETTINGS.horizonSeconds);
+      }
+      parsed.maxBytesPerEpisode = Math.max(parsed.maxBytesPerEpisode ?? 0, DEFAULT_CACHE_SETTINGS.maxBytesPerEpisode);
+      parsed.maxTotalBytes = Math.max(parsed.maxTotalBytes ?? 0, DEFAULT_CACHE_SETTINGS.maxTotalBytes);
+    }
+    return normalizeCacheSettings(parsed);
   } catch {
     return { ...DEFAULT_CACHE_SETTINGS };
   }

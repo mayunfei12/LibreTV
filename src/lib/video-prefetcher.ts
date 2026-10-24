@@ -260,7 +260,8 @@ export class VideoPrefetcher {
     let cached = 0;
     let bytes = 0;
     let lastEvict = Date.now();
-    const concurrency = Math.min(options.concurrency ?? 3, 4);
+    // 预取并发默认 3 -> 4（上限 4）：同一时间多拉一片，铺缓存更快
+    const concurrency = Math.min(options.concurrency ?? 4, 4);
 
     const worker = async (): Promise<void> => {
       while (cursor < taskQueue.length) {

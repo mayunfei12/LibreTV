@@ -127,6 +127,8 @@ export interface BangumiCalendarResponse {
 export interface AuthStatusResponse {
   /** 服务器是否配置了 PASSWORD */
   passwordRequired: boolean;
+  /** 访客模式（LIBRETV_GUEST=1）：免登录直接访问，仅本地自用 */
+  guest?: boolean;
   /** 当前会话是否已验证 */
   verified: boolean;
   version: string;

@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
-import { SESSION_COOKIE, checkRateLimit, sessionFromCookieHeader, signSession, checkPassword, clearRateLimit, isPasswordConfigured } from '@/lib/auth';
+import { SESSION_COOKIE, checkRateLimit, sessionFromCookieHeader, signSession, checkPassword, clearRateLimit, isPasswordConfigured, isGuestMode } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
+  if (isGuestMode()) {
+    return NextResponse.json({ success: true });
+  }
   if (!isPasswordConfigured()) {
     return NextResponse.json(
       { success: false, error: '服务器未设置 PASSWORD 环境变量，请联系管理员配置' },

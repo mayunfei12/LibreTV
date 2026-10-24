@@ -20,6 +20,11 @@ export function isPasswordConfigured(): boolean {
   return getPassword().length > 0;
 }
 
+/** 访客模式：设置 LIBRETV_GUEST=1 时免登录直接访问（仅本地自用，默认关闭，不影响公网安全） */
+export function isGuestMode(): boolean {
+  return process.env.LIBRETV_GUEST === '1';
+}
+
 function getSecret(): string {
   if (process.env.PROXY_SECRET) return process.env.PROXY_SECRET;
   return crypto.createHash('sha256').update(getPassword() + ':libretv::session-salt').digest('hex');

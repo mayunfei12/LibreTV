@@ -55,8 +55,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .fetchQuery({ queryKey: STATUS_QUERY_KEY, queryFn: () => api.status() })
       .then((s) => {
         if (cancelled) return;
-        setVerified(s.verified);
-        setSetupRequired(!s.passwordRequired);
+        setVerified(s.verified || !!s.guest);
+        setSetupRequired(!s.passwordRequired && !s.guest);
         setVersion(s.version);
         setChecked(true);
       })
